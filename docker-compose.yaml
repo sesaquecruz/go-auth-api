@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0.32
+    hostname: mysql
+    container_name: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=auth
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=user
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 12
+
+  migrate:
+    depends_on:
+      mysql:
+        condition: service_healthy
+    image: migrate/migrate
+    hostname: migrate
+    container_name: migrate
+    volumes:
+      - ./migrations:/migrations:ro
+    command: [ "-path", "/migrations", "-database",  "mysql://user:user@tcp(mysql:3306)/auth", "-verbose", "up" ]
+
+  auth-api:
+    depends_on:
+      mysql:
+        condition: service_healthy
+    build: .
+    image: auth-api:compose
+    hostname: auth-api
+    container_name: auth-api
+    environment:
+      - DB_DRIVER=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=auth
+      - DB_USER=user
+      - DB_PASSWORD=user
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app

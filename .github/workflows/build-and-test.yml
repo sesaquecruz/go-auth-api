@@ -1,0 +1,69 @@
+name: 'Build and Test'
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0.32
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: auth
+          MYSQL_USER: user
+          MYSQL_PASSWORD: user
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=12
+
+    env:
+      DB_DRIVER: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: auth
+      DB_USER: user
+      DB_PASSWORD: user
+
+    steps:
+      - name: Wait MySQL
+        run: until mysql -h$DB_HOST -u$DB_USER -p$DB_PASSWORD $DB_NAME -e ";" ; do sleep 5; done
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+          preferLatestVersion: true
+      
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v0
+        with:
+          useConfigFile: true
+      
+      - name: Show Version
+        run: echo $GITVERSION_SEMVER
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+      
+      - name: Build
+        run: go build -v ./...
+      
+      - name: Test
+        run: go test --race -v ./...
