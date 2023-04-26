@@ -52,3 +52,13 @@ func Test_User_Validate(t *testing.T) {
 	user = User{ID: uuid.New(), Email: "user@mail.com", Password: string(hash)}
 	assert.Nil(t, user.Validate())
 }
+
+func Test_User_VerifyPassword(t *testing.T) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte("12345"), bcrypt.DefaultCost)
+
+	user := User{Password: string(hash)}
+	assert.Error(t, user.VerifyPassword(""))
+	assert.Error(t, user.VerifyPassword("1234"))
+	assert.Error(t, user.VerifyPassword("123456"))
+	assert.Nil(t, user.VerifyPassword("12345"))
+}
