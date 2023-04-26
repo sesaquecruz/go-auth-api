@@ -5,14 +5,19 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/sesaquecruz/go-auth-api/internal/entity"
+
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_CreateUserUseCase_NewCreateUserUseCase(t *testing.T) {
-	userFactory := &UserFactoryMock{}
-	userRepository := &UserRepositoryMock{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userFactory := entity.NewMockUserFactoryInterface(ctrl)
+	userRepository := entity.NewMockUserRepositoryInterface(ctrl)
 
 	createUserUseCase := NewCreateUserUseCase(userFactory, userRepository)
 	assert.NotNil(t, createUserUseCase)
@@ -21,55 +26,43 @@ func Test_CreateUserUseCase_NewCreateUserUseCase(t *testing.T) {
 }
 
 func Test_CreateUserUseCase_Execute_WhenUserIsValid(t *testing.T) {
-	user := entity.User{ID: uuid.New(), Email: "user@mail.com", Password: "12345"}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userFactory := entity.NewMockUserFactoryInterface(ctrl)
+	userRepository := entity.NewMockUserRepositoryInterface(ctrl)
+
+	user := &entity.User{ID: uuid.New(), Email: "user@mail.com", Password: "12345"}
 	ctx := context.Background()
 
-	userFactory := &UserFactoryMock{}
-	userRepository := &UserRepositoryMock{}
+	userFactory.EXPECT().NewUser(user.Email, user.Password).Return(user, nil).Times(1)
+	userRepository.EXPECT().FindByEmail(ctx, user.Email).Return(nil, sql.ErrNoRows).Times(1)
+	userRepository.EXPECT().Save(ctx, *user).Return(nil).Times(1)
 
-	userFactory.On("NewUser", user.Email, user.Password).Return(&user, nil)
-	userRepository.On("FindByEmail", ctx, user.Email).Return(&user, sql.ErrNoRows)
-	userRepository.On("Save", ctx, user).Return(nil)
-
-	input := CreateUserUseCaseInputDTO{Email: user.Email, Password: user.Password}
 	createUserUseCase := CreateUserUseCase{UserFactory: userFactory, UserRepository: userRepository}
+	input := CreateUserUseCaseInputDTO{Email: user.Email, Password: user.Password}
 
 	err := createUserUseCase.Execute(ctx, input)
 	assert.Nil(t, err)
-
-	userFactory.AssertExpectations(t)
-	userFactory.AssertNumberOfCalls(t, "NewUser", 1)
-	userFactory.AssertCalled(t, "NewUser", user.Email, user.Password)
-
-	userRepository.AssertExpectations(t)
-	userRepository.AssertNumberOfCalls(t, "FindByEmail", 1)
-	userRepository.AssertNumberOfCalls(t, "Save", 1)
-	userRepository.AssertCalled(t, "FindByEmail", ctx, user.Email)
-	userRepository.AssertCalled(t, "Save", ctx, user)
 }
 
 func Test_CreateUserUseCase_Execute_WhenUserAlreadyExists(t *testing.T) {
-	user := entity.User{ID: uuid.New(), Email: "user@mail.com", Password: "12345"}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userFactory := entity.NewMockUserFactoryInterface(ctrl)
+	userRepository := entity.NewMockUserRepositoryInterface(ctrl)
+
+	user := &entity.User{ID: uuid.New(), Email: "user@mail.com", Password: "12345"}
 	ctx := context.Background()
 
-	userFactory := &UserFactoryMock{}
-	userRepository := &UserRepositoryMock{}
-
-	userFactory.On("NewUser", user.Email, user.Password).Return(&user, nil)
-	userRepository.On("FindByEmail", ctx, user.Email).Return(&user, nil)
-	userRepository.On("Save", ctx, user).Return(nil)
+	userFactory.EXPECT().NewUser(user.Email, user.Password).Return(user, nil).Times(1)
+	userRepository.EXPECT().FindByEmail(ctx, user.Email).Return(user, nil).Times(1)
+	userRepository.EXPECT().Save(ctx, *user).Return(nil).Times(0)
 
 	input := CreateUserUseCaseInputDTO{Email: user.Email, Password: user.Password}
 	createUserUseCase := CreateUserUseCase{UserFactory: userFactory, UserRepository: userRepository}
 
 	err := createUserUseCase.Execute(ctx, input)
 	assert.ErrorIs(t, err, ErrCreateUserEmailAlreadyUsed)
-
-	userFactory.AssertExpectations(t)
-	userFactory.AssertNumberOfCalls(t, "NewUser", 1)
-	userFactory.AssertCalled(t, "NewUser", user.Email, user.Password)
-
-	userRepository.AssertNumberOfCalls(t, "FindByEmail", 1)
-	userRepository.AssertNumberOfCalls(t, "Save", 0)
-	userRepository.AssertCalled(t, "FindByEmail", ctx, user.Email)
 }

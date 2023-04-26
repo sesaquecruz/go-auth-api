@@ -1,4 +1,4 @@
-package database
+package repository
 
 import (
 	"context"
@@ -45,7 +45,7 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 	dir, err := os.Getwd()
 	s.Require().Nil(err)
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 4; i++ {
 		dir = filepath.Dir(dir)
 	}
 

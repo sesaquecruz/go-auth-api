@@ -71,3 +71,7 @@ func (u *User) Validate() error {
 	}
 	return nil
 }
+
+func (u *User) VerifyPassword(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+}
