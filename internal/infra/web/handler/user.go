@@ -25,6 +25,7 @@ type UserHandler struct {
 	CreateUserUseCase usecase.CreateUserUseCaseInterface
 	AuthUserUseCase   usecase.AuthUserUseCaseInterface
 	UpdateUserUseCase usecase.UpdateUserUseCaseInterface
+	DeleteUserUseCase usecase.DeleteUserUseCaseInterface
 }
 
 func NewUserHandler(
@@ -33,6 +34,7 @@ func NewUserHandler(
 	createUserUseCase usecase.CreateUserUseCaseInterface,
 	authUserUseCase usecase.AuthUserUseCaseInterface,
 	updateUserUseCase usecase.UpdateUserUseCaseInterface,
+	deleteUserUseCase usecase.DeleteUserUseCaseInterface,
 ) *UserHandler {
 	return &UserHandler{
 		JWTAuth:           jwtAuth,
@@ -40,6 +42,7 @@ func NewUserHandler(
 		CreateUserUseCase: createUserUseCase,
 		AuthUserUseCase:   authUserUseCase,
 		UpdateUserUseCase: updateUserUseCase,
+		DeleteUserUseCase: deleteUserUseCase,
 	}
 }
 
@@ -133,6 +136,33 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		ID:       sub,
 		Email:    data.Email,
 		Password: data.Password,
+	})
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+
+		if err == usecase.ErrUpdateUserInternalError {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		json.NewEncoder(w).Encode(UserHandlerOutputDTO{Message: err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	err := h.DeleteUserUseCase.Execute(r.Context(), usecase.DeleteUserUseCaseInputDTO{
+		ID: sub,
 	})
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")

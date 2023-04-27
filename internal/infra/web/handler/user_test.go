@@ -25,6 +25,7 @@ func Test_UserHandler_NewUserHandler(t *testing.T) {
 	createUserUseCase := usecase.NewMockCreateUserUseCaseInterface(ctrl)
 	authUserUseCase := usecase.NewMockAuthUserUseCaseInterface(ctrl)
 	updateUserUsecase := usecase.NewMockUpdateUserUseCaseInterface(ctrl)
+	deleteUserUseCase := usecase.NewMockDeleteUserUseCaseInterface(ctrl)
 
 	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
 	jwtxpiration := time.Duration(300) * time.Second
@@ -35,6 +36,7 @@ func Test_UserHandler_NewUserHandler(t *testing.T) {
 		createUserUseCase,
 		authUserUseCase,
 		updateUserUsecase,
+		deleteUserUseCase,
 	)
 	assert.NotNil(t, userHander)
 	assert.Equal(t, jwtAuth, userHander.JWTAuth)
@@ -135,6 +137,36 @@ func Test_UserHandler_UpdateUser(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	userHandler.UpdateUser(rr, req)
+
+	res := rr.Result()
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
+func Test_UserHandler_DelteUser(t *testing.T) {
+	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
+	payload := map[string]interface{}{
+		"sub": uuid.NewString(),
+		"exp": jwtauth.ExpireIn(time.Duration(300) * time.Second),
+	}
+	token, _, err := jwtAuth.Encode(payload)
+	require.Nil(t, err)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	deleteUserUseCase := usecase.NewMockDeleteUserUseCaseInterface(ctrl)
+	deleteUserUseCase.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+
+	userHandler := UserHandler{DeleteUserUseCase: deleteUserUseCase}
+
+	ctx := jwtauth.NewContext(context.Background(), token, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/", nil)
+	require.Nil(t, err)
+
+	rr := httptest.NewRecorder()
+	userHandler.DeleteUser(rr, req)
 
 	res := rr.Result()
 	defer res.Body.Close()

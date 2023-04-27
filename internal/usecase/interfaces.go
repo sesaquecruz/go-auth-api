@@ -13,3 +13,7 @@ type AuthUserUseCaseInterface interface {
 type UpdateUserUseCaseInterface interface {
 	Execute(ctx context.Context, input UpdateUserUseCaseInputDTO) (*UpdateUserUseCaseOutputDTO, error)
 }
+
+type DeleteUserUseCaseInterface interface {
+	Execute(ctx context.Context, input DeleteUserUseCaseInputDTO) error
+}

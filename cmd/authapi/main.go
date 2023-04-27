@@ -44,6 +44,7 @@ func main() {
 	createUserUseCase := usecase.NewCreateUserUseCase(userFactory, userRepository)
 	authUserUseCase := usecase.NewAuthUserUseCase(userFactory, userRepository)
 	updateUserUseCase := usecase.NewUpdateUserUseCase(userFactory, userRepository)
+	deleteUserUseCase := usecase.NewDeleteUserUseCase(userRepository)
 
 	userHandler := handler.NewUserHandler(
 		jwtAuth,
@@ -51,6 +52,7 @@ func main() {
 		createUserUseCase,
 		authUserUseCase,
 		updateUserUseCase,
+		deleteUserUseCase,
 	)
 
 	r := chi.NewRouter()
@@ -67,6 +69,7 @@ func main() {
 		r.Use(mw.EchoAuthToken)
 
 		r.Put("/", userHandler.UpdateUser)
+		r.Delete("/", userHandler.DeleteUser)
 	})
 
 	log.Println("server is running on port 8080...")
