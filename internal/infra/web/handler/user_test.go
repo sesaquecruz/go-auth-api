@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -23,6 +24,7 @@ func Test_UserHandler_NewUserHandler(t *testing.T) {
 
 	createUserUseCase := usecase.NewMockCreateUserUseCaseInterface(ctrl)
 	authUserUseCase := usecase.NewMockAuthUserUseCaseInterface(ctrl)
+	updateUserUsecase := usecase.NewMockUpdateUserUseCaseInterface(ctrl)
 
 	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
 	jwtxpiration := time.Duration(300) * time.Second
@@ -32,6 +34,7 @@ func Test_UserHandler_NewUserHandler(t *testing.T) {
 		jwtxpiration,
 		createUserUseCase,
 		authUserUseCase,
+		updateUserUsecase,
 	)
 	assert.NotNil(t, userHander)
 	assert.Equal(t, jwtAuth, userHander.JWTAuth)
@@ -68,7 +71,7 @@ func Test_UserHandler_CreateUser(t *testing.T) {
 	assert.Nil(t, err)
 	defer response.Body.Close()
 
-	assert.Equal(t, response.StatusCode, http.StatusCreated)
+	assert.Equal(t, http.StatusCreated, response.StatusCode)
 }
 
 func Test_UserHandler_AuthUser(t *testing.T) {
@@ -102,6 +105,39 @@ func Test_UserHandler_AuthUser(t *testing.T) {
 	assert.Nil(t, err)
 	defer response.Body.Close()
 
-	assert.Equal(t, response.StatusCode, http.StatusOK)
+	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.NotEmpty(t, response.Header.Get("Authorization"))
+}
+
+func Test_UserHandler_UpdateUser(t *testing.T) {
+	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
+	payload := map[string]interface{}{
+		"sub": uuid.NewString(),
+		"exp": jwtauth.ExpireIn(time.Duration(300) * time.Second),
+	}
+	token, _, err := jwtAuth.Encode(payload)
+	require.Nil(t, err)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	updateUserUseCase := usecase.NewMockUpdateUserUseCaseInterface(ctrl)
+	updateUserUseCase.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(nil, nil).Times(1)
+
+	userHandler := UserHandler{UpdateUserUseCase: updateUserUseCase}
+
+	body, err := json.Marshal(UserHandlerInputDTO{Email: "user@mail.com", Password: "12345"})
+	require.Nil(t, err)
+
+	ctx := jwtauth.NewContext(context.Background(), token, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "/", bytes.NewReader(body))
+	require.Nil(t, err)
+
+	rr := httptest.NewRecorder()
+	userHandler.UpdateUser(rr, req)
+
+	res := rr.Result()
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
 }

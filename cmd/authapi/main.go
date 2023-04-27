@@ -11,6 +11,7 @@ import (
 	"github.com/sesaquecruz/go-auth-api/internal/entity"
 	"github.com/sesaquecruz/go-auth-api/internal/infra/database/repository"
 	"github.com/sesaquecruz/go-auth-api/internal/infra/web/handler"
+	mw "github.com/sesaquecruz/go-auth-api/internal/infra/web/middleware"
 	"github.com/sesaquecruz/go-auth-api/internal/usecase"
 
 	"github.com/go-chi/chi/middleware"
@@ -42,20 +43,30 @@ func main() {
 
 	createUserUseCase := usecase.NewCreateUserUseCase(userFactory, userRepository)
 	authUserUseCase := usecase.NewAuthUserUseCase(userFactory, userRepository)
+	updateUserUseCase := usecase.NewUpdateUserUseCase(userFactory, userRepository)
 
 	userHandler := handler.NewUserHandler(
 		jwtAuth,
 		jwtExpiration,
 		createUserUseCase,
 		authUserUseCase,
+		updateUserUseCase,
 	)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Route("/", func(r chi.Router) {
-		r.Post("/", userHandler.CreateUser)
-		r.Post("/auth", userHandler.AuthUser)
+	r.Route("/login", func(r chi.Router) {
+		r.Post("/new", userHandler.CreateUser)
+		r.Post("/", userHandler.AuthUser)
+	})
+
+	r.Route("/user", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(jwtAuth))
+		r.Use(jwtauth.Authenticator)
+		r.Use(mw.EchoAuthToken)
+
+		r.Put("/", userHandler.UpdateUser)
 	})
 
 	log.Println("server is running on port 8080...")

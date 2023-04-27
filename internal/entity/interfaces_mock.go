@@ -35,6 +35,21 @@ func (m *MockUserFactoryInterface) EXPECT() *MockUserFactoryInterfaceMockRecorde
 	return m.recorder
 }
 
+// GetUser mocks base method.
+func (m *MockUserFactoryInterface) GetUser(id, email, password string) (*User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", id, email, password)
+	ret0, _ := ret[0].(*User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockUserFactoryInterfaceMockRecorder) GetUser(id, email, password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserFactoryInterface)(nil).GetUser), id, email, password)
+}
+
 // NewUser mocks base method.
 func (m *MockUserFactoryInterface) NewUser(email, password string) (*User, error) {
 	m.ctrl.T.Helper()
