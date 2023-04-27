@@ -53,6 +53,34 @@ func (f *UserFactory) NewUser(email string, password string) (*User, error) {
 	return user, nil
 }
 
+func (f *UserFactory) GetUser(id string, email string, password string) (*User, error) {
+	ID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, ErrUserInvalidID
+	}
+
+	if !emailPattern.MatchString(email) {
+		return nil, ErrUserInvalidEmail
+	}
+
+	if len(password) < passwordMinLen {
+		return nil, ErrUserInvalidPassword
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	user := &User{
+		ID:       ID,
+		Email:    email,
+		Password: string(hash),
+	}
+
+	return user, nil
+}
+
 type User struct {
 	ID       uuid.UUID
 	Email    string

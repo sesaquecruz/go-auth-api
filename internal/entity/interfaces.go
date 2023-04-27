@@ -8,6 +8,7 @@ import (
 
 type UserFactoryInterface interface {
 	NewUser(email string, password string) (*User, error)
+	GetUser(id string, email string, password string) (*User, error)
 }
 
 type UserRepositoryInterface interface {

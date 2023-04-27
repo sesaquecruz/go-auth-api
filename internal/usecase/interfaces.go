@@ -9,3 +9,7 @@ type CreateUserUseCaseInterface interface {
 type AuthUserUseCaseInterface interface {
 	Execute(ctx context.Context, input AuthUserUseCaseInputDTO) (*AuthUserUseCaseOutputDTO, error)
 }
+
+type UpdateUserUseCaseInterface interface {
+	Execute(ctx context.Context, input UpdateUserUseCaseInputDTO) (*UpdateUserUseCaseOutputDTO, error)
+}
