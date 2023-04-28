@@ -26,6 +26,7 @@ func Test_UserHandler_NewUserHandler(t *testing.T) {
 	authUserUseCase := usecase.NewMockAuthUserUseCaseInterface(ctrl)
 	updateUserUsecase := usecase.NewMockUpdateUserUseCaseInterface(ctrl)
 	deleteUserUseCase := usecase.NewMockDeleteUserUseCaseInterface(ctrl)
+	findUserUseCase := usecase.NewMockFindUserUseCaseInterface(ctrl)
 
 	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
 	jwtxpiration := time.Duration(300) * time.Second
@@ -37,6 +38,7 @@ func Test_UserHandler_NewUserHandler(t *testing.T) {
 		authUserUseCase,
 		updateUserUsecase,
 		deleteUserUseCase,
+		findUserUseCase,
 	)
 	assert.NotNil(t, userHander)
 	assert.Equal(t, jwtAuth, userHander.JWTAuth)
@@ -144,7 +146,7 @@ func Test_UserHandler_UpdateUser(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
 
-func Test_UserHandler_DelteUser(t *testing.T) {
+func Test_UserHandler_DeleteUser(t *testing.T) {
 	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
 	payload := map[string]interface{}{
 		"sub": uuid.NewString(),
@@ -172,4 +174,40 @@ func Test_UserHandler_DelteUser(t *testing.T) {
 	defer res.Body.Close()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
+func Test_UserHandler_FindUser(t *testing.T) {
+	jwtAuth := jwtauth.New("HS256", []byte("secret"), nil)
+	payload := map[string]interface{}{
+		"sub": uuid.NewString(),
+		"exp": jwtauth.ExpireIn(time.Duration(300) * time.Second),
+	}
+	token, _, err := jwtAuth.Encode(payload)
+	require.Nil(t, err)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	output := &usecase.FindUserUseCaseOutputDTO{Email: "user@mail.com"}
+
+	findUserUseCase := usecase.NewMockFindUserUseCaseInterface(ctrl)
+	findUserUseCase.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(output, nil).Times(1)
+
+	userHandler := UserHandler{FindUserUseCase: findUserUseCase}
+
+	ctx := jwtauth.NewContext(context.Background(), token, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+	require.Nil(t, err)
+
+	rr := httptest.NewRecorder()
+	userHandler.FindUser(rr, req)
+
+	res := rr.Result()
+	defer res.Body.Close()
+
+	var body usecase.FindUserUseCaseOutputDTO
+	json.NewDecoder(res.Body).Decode(&body)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, output.Email, body.Email)
 }
