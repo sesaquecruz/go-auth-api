@@ -17,3 +17,7 @@ type UpdateUserUseCaseInterface interface {
 type DeleteUserUseCaseInterface interface {
 	Execute(ctx context.Context, input DeleteUserUseCaseInputDTO) error
 }
+
+type FindUserUseCaseInterface interface {
+	Execute(ctx context.Context, input FindUserUseCaseInputDTO) (*FindUserUseCaseOutputDTO, error)
+}

@@ -15,7 +15,7 @@ type UserHandlerInputDTO struct {
 	Password string `json:"password"`
 }
 
-type UserHandlerOutputDTO struct {
+type UserHandlerMessageDTO struct {
 	Message string `json:"message"`
 }
 
@@ -26,6 +26,7 @@ type UserHandler struct {
 	AuthUserUseCase   usecase.AuthUserUseCaseInterface
 	UpdateUserUseCase usecase.UpdateUserUseCaseInterface
 	DeleteUserUseCase usecase.DeleteUserUseCaseInterface
+	FindUserUseCase   usecase.FindUserUseCaseInterface
 }
 
 func NewUserHandler(
@@ -35,6 +36,7 @@ func NewUserHandler(
 	authUserUseCase usecase.AuthUserUseCaseInterface,
 	updateUserUseCase usecase.UpdateUserUseCaseInterface,
 	deleteUserUseCase usecase.DeleteUserUseCaseInterface,
+	findUserUseCase usecase.FindUserUseCaseInterface,
 ) *UserHandler {
 	return &UserHandler{
 		JWTAuth:           jwtAuth,
@@ -43,6 +45,7 @@ func NewUserHandler(
 		AuthUserUseCase:   authUserUseCase,
 		UpdateUserUseCase: updateUserUseCase,
 		DeleteUserUseCase: deleteUserUseCase,
+		FindUserUseCase:   findUserUseCase,
 	}
 }
 
@@ -67,7 +70,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		json.NewEncoder(w).Encode(UserHandlerOutputDTO{Message: err.Error()})
+		json.NewEncoder(w).Encode(UserHandlerMessageDTO{Message: err.Error()})
 		return
 	}
 
@@ -97,7 +100,7 @@ func (h *UserHandler) AuthUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		json.NewEncoder(w).Encode(UserHandlerOutputDTO{Message: err.Error()})
+		json.NewEncoder(w).Encode(UserHandlerMessageDTO{Message: err.Error()})
 		return
 	}
 
@@ -109,7 +112,7 @@ func (h *UserHandler) AuthUser(w http.ResponseWriter, r *http.Request) {
 	_, token, err := h.JWTAuth.Encode(payload)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(UserHandlerOutputDTO{Message: err.Error()})
+		json.NewEncoder(w).Encode(UserHandlerMessageDTO{Message: err.Error()})
 		return
 	}
 
@@ -146,7 +149,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		json.NewEncoder(w).Encode(UserHandlerOutputDTO{Message: err.Error()})
+		json.NewEncoder(w).Encode(UserHandlerMessageDTO{Message: err.Error()})
 		return
 	}
 
@@ -173,9 +176,38 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		json.NewEncoder(w).Encode(UserHandlerOutputDTO{Message: err.Error()})
+		json.NewEncoder(w).Encode(UserHandlerMessageDTO{Message: err.Error()})
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *UserHandler) FindUser(w http.ResponseWriter, r *http.Request) {
+	_, claims, _ := jwtauth.FromContext(r.Context())
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	output, err := h.FindUserUseCase.Execute(r.Context(), usecase.FindUserUseCaseInputDTO{
+		ID: sub,
+	})
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+
+		if err == usecase.ErrFindUserInternalError {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		json.NewEncoder(w).Encode(UserHandlerMessageDTO{Message: err.Error()})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(output)
 }

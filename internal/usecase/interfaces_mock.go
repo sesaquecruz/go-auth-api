@@ -160,3 +160,41 @@ func (mr *MockDeleteUserUseCaseInterfaceMockRecorder) Execute(ctx, input interfa
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockDeleteUserUseCaseInterface)(nil).Execute), ctx, input)
 }
+
+// MockFindUserUseCaseInterface is a mock of FindUserUseCaseInterface interface.
+type MockFindUserUseCaseInterface struct {
+	ctrl     *gomock.Controller
+	recorder *MockFindUserUseCaseInterfaceMockRecorder
+}
+
+// MockFindUserUseCaseInterfaceMockRecorder is the mock recorder for MockFindUserUseCaseInterface.
+type MockFindUserUseCaseInterfaceMockRecorder struct {
+	mock *MockFindUserUseCaseInterface
+}
+
+// NewMockFindUserUseCaseInterface creates a new mock instance.
+func NewMockFindUserUseCaseInterface(ctrl *gomock.Controller) *MockFindUserUseCaseInterface {
+	mock := &MockFindUserUseCaseInterface{ctrl: ctrl}
+	mock.recorder = &MockFindUserUseCaseInterfaceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFindUserUseCaseInterface) EXPECT() *MockFindUserUseCaseInterfaceMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method.
+func (m *MockFindUserUseCaseInterface) Execute(ctx context.Context, input FindUserUseCaseInputDTO) (*FindUserUseCaseOutputDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, input)
+	ret0, _ := ret[0].(*FindUserUseCaseOutputDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Execute indicates an expected call of Execute.
+func (mr *MockFindUserUseCaseInterfaceMockRecorder) Execute(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockFindUserUseCaseInterface)(nil).Execute), ctx, input)
+}
