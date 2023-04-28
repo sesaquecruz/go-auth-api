@@ -19,8 +19,26 @@ import (
 	"github.com/go-chi/jwtauth"
 
 	_ "github.com/go-sql-driver/mysql"
+
+	_ "github.com/sesaquecruz/go-auth-api/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title          	Auth API
+// @version        	0.2.0
+// @description    	An Auth API with JWT and RSA
+
+// @contact.name   	API Repository
+// @contact.url    	https://github.com/sesaquecruz/go-auth-api
+
+// @license.name	MIT License
+// @license.url   	https://github.com/sesaquecruz/go-auth-api/blob/main/LICENSE
+
+// @host           	localhost:8080
+// @BasePath       	/
+// @securityDefinitions.apikey ApiKeyAuth
+// @in             	header
+// @name           	Authorization
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -74,6 +92,8 @@ func main() {
 		r.Delete("/", userHandler.DeleteUser)
 		r.Get("/", userHandler.FindUser)
 	})
+
+	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8080/docs/doc.json")))
 
 	log.Println("server is running on port 8080...")
 	http.ListenAndServe(":8080", r)
