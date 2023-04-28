@@ -49,6 +49,17 @@ func NewUserHandler(
 	}
 }
 
+// Create user godoc
+// @Sumary		Create user
+// @Description	Create user
+// @Tags		login
+// @Accept		json
+// @Produce		json
+// @Param		request		body		handler.UserHandlerInputDTO		true	"user request"
+// @Success		201
+// @Failure		400			{object}	handler.UserHandlerMessageDTO
+// @Failure		500			{object}	handler.UserHandlerMessageDTO
+// @Router		/login/new	[post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var data UserHandlerInputDTO
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -77,6 +88,18 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// Auth user godoc
+// @Sumary		Auth user
+// @Description	Auth user
+// @Tags		login
+// @Accept		json
+// @Produce		json
+// @Param		request		body		handler.UserHandlerInputDTO		true	"user credentials"
+// @Success		200
+// @Failure		400			{object}	handler.UserHandlerMessageDTO
+// @Failure		401			{object}	handler.UserHandlerMessageDTO
+// @Failure		500			{object}	handler.UserHandlerMessageDTO
+// @Router		/login		[post]
 func (h *UserHandler) AuthUser(w http.ResponseWriter, r *http.Request) {
 	var data UserHandlerInputDTO
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -120,6 +143,19 @@ func (h *UserHandler) AuthUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Update user godoc
+// @Sumary		Update user
+// @Description	Update user
+// @Tags		user
+// @Accept		json
+// @Produce		json
+// @Param		request		body		handler.UserHandlerInputDTO	true	"user request"
+// @Success		200
+// @Failure		400			{object}	handler.UserHandlerMessageDTO
+// @Failure		401			{object}	handler.UserHandlerMessageDTO
+// @Failure		500			{object}	handler.UserHandlerMessageDTO
+// @Router		/user 		[put]
+// @Security	ApiKeyAuth
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
 	sub, ok := claims["sub"].(string)
@@ -156,6 +192,18 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Delete user godoc
+// @Sumary		Delete user
+// @Description	Delete user
+// @Tags		user
+// @Accept		*/*
+// @Produce		json
+// @Success		200
+// @Failure		400			{object}	handler.UserHandlerMessageDTO
+// @Failure		401			{object}	handler.UserHandlerMessageDTO
+// @Failure		500			{object}	handler.UserHandlerMessageDTO
+// @Router		/user 		[delete]
+// @Security	ApiKeyAuth
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
 	sub, ok := claims["sub"].(string)
@@ -183,6 +231,18 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Find user godoc
+// @Sumary		Find user
+// @Description	Find user
+// @Tags		user
+// @Accept		*/*
+// @Produce		json
+// @Success		200			{object}	usecase.FindUserUseCaseOutputDTO
+// @Failure		400			{object}	handler.UserHandlerMessageDTO
+// @Failure		401			{object}	handler.UserHandlerMessageDTO
+// @Failure		500			{object}	handler.UserHandlerMessageDTO
+// @Router		/user 		[get]
+// @Security	ApiKeyAuth
 func (h *UserHandler) FindUser(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
 	sub, ok := claims["sub"].(string)
