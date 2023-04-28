@@ -11,7 +11,6 @@ import (
 	"github.com/sesaquecruz/go-auth-api/internal/entity"
 	"github.com/sesaquecruz/go-auth-api/internal/infra/database/repository"
 	"github.com/sesaquecruz/go-auth-api/internal/infra/web/handler"
-	mw "github.com/sesaquecruz/go-auth-api/internal/infra/web/middleware"
 	"github.com/sesaquecruz/go-auth-api/internal/usecase"
 
 	"github.com/go-chi/chi/middleware"
@@ -86,7 +85,6 @@ func main() {
 	r.Route("/user", func(r chi.Router) {
 		r.Use(jwtauth.Verifier(jwtAuth))
 		r.Use(jwtauth.Authenticator)
-		r.Use(mw.EchoAuthToken)
 
 		r.Put("/", userHandler.UpdateUser)
 		r.Delete("/", userHandler.DeleteUser)

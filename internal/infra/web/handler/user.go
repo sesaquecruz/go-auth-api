@@ -189,6 +189,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := r.Header.Get("Authorization")
+	w.Header().Set("Authorization", token)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -267,6 +269,8 @@ func (h *UserHandler) FindUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := r.Header.Get("Authorization")
+	w.Header().Set("Authorization", token)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(output)
