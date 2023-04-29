@@ -11,7 +11,7 @@ This project is a RESTful API written in Go for user authentication and manageme
 | `/api/v1/users` | GET    | YES | Retrieve user data                      |
 | `/api/v1/users` | PUT    | YES | Update user data                        |
 | `/api/v1/users` | DELETE | YES | Delete user account                     |
-| `/api/v1/docs`  | GET    | NO  | API Documentation / Swagger UI                              |
+| `/api/v1/docs/`  | GET    | NO  | API Documentation / Swagger UI                              |
 
 ## Requirements
 
@@ -47,7 +47,7 @@ docker compose up --build
 1. Access the Swagger UI:
 
 ```
-http://localhost:8080/api/v1/docs
+http://localhost:8080/api/v1/docs/
 ```
 
 To access protected endpoints, a JWT token is required. This token can be obtained by creating a user account and authenticating it. The user ID will be included in the token.
