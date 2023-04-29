@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1
 definitions:
   handler.UserHandlerInputDTO:
     properties:
@@ -27,7 +27,7 @@ info:
     name: MIT License
     url: https://github.com/sesaquecruz/go-auth-api/blob/main/LICENSE
   title: Auth API
-  version: 0.2.0
+  version: 1.0.0
 paths:
   /login:
     post:
@@ -60,34 +60,7 @@ paths:
             $ref: '#/definitions/handler.UserHandlerMessageDTO'
       tags:
       - login
-  /login/new:
-    post:
-      consumes:
-      - application/json
-      description: Create user
-      parameters:
-      - description: user request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handler.UserHandlerInputDTO'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handler.UserHandlerMessageDTO'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handler.UserHandlerMessageDTO'
-      tags:
-      - login
-  /user:
+  /users:
     delete:
       consumes:
       - '*/*'
@@ -112,7 +85,7 @@ paths:
       security:
       - ApiKeyAuth: []
       tags:
-      - user
+      - users
     get:
       consumes:
       - '*/*'
@@ -139,7 +112,33 @@ paths:
       security:
       - ApiKeyAuth: []
       tags:
-      - user
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UserHandlerInputDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+      tags:
+      - users
     put:
       consumes:
       - application/json
@@ -171,7 +170,7 @@ paths:
       security:
       - ApiKeyAuth: []
       tags:
-      - user
+      - users
 securityDefinitions:
   ApiKeyAuth:
     in: header

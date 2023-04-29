@@ -23,8 +23,11 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+const basePath = "/api/v1"
+const port = "8080"
+
 // @title          	Auth API
-// @version        	0.2.0
+// @version        	1.0.0
 // @description    	An Auth API with JWT and RSA
 
 // @contact.name   	API Repository
@@ -34,7 +37,7 @@ import (
 // @license.url   	https://github.com/sesaquecruz/go-auth-api/blob/main/LICENSE
 
 // @host           	localhost:8080
-// @BasePath       	/
+// @BasePath       	/api/v1
 // @securityDefinitions.apikey ApiKeyAuth
 // @in             	header
 // @name           	Authorization
@@ -77,22 +80,27 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Route("/login", func(r chi.Router) {
-		r.Post("/new", userHandler.CreateUser)
+	authMiddlewares := chi.Chain(
+		jwtauth.Verifier(jwtAuth),
+		jwtauth.Authenticator,
+	)
+
+	r.Route(basePath+"/login", func(r chi.Router) {
 		r.Post("/", userHandler.AuthUser)
 	})
 
-	r.Route("/user", func(r chi.Router) {
-		r.Use(jwtauth.Verifier(jwtAuth))
-		r.Use(jwtauth.Authenticator)
-
-		r.Put("/", userHandler.UpdateUser)
-		r.Delete("/", userHandler.DeleteUser)
-		r.Get("/", userHandler.FindUser)
+	r.Route(basePath+"/users", func(r chi.Router) {
+		r.Post("/", userHandler.CreateUser)
+		r.With(authMiddlewares...).Get("/", userHandler.FindUser)
+		r.With(authMiddlewares...).Put("/", userHandler.UpdateUser)
+		r.With(authMiddlewares...).Delete("/", userHandler.DeleteUser)
 	})
 
-	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8080/docs/doc.json")))
+	r.Get(
+		basePath+"/docs/*",
+		httpSwagger.Handler(httpSwagger.URL(fmt.Sprintf("http://localhost:%s%s/docs/doc.json", port, basePath))),
+	)
 
-	log.Println("server is running on port 8080...")
-	http.ListenAndServe(":8080", r)
+	log.Printf("server is running on port %s...\n", port)
+	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
 }
