@@ -1,0 +1,179 @@
+basePath: /api/v1
+definitions:
+  handler.UserHandlerInputDTO:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  handler.UserHandlerMessageDTO:
+    properties:
+      message:
+        type: string
+    type: object
+  usecase.FindUserUseCaseOutputDTO:
+    properties:
+      email:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: API Repository
+    url: https://github.com/sesaquecruz/go-auth-api
+  description: An Auth API with JWT and RSA
+  license:
+    name: MIT License
+    url: https://github.com/sesaquecruz/go-auth-api/blob/main/LICENSE
+  title: Auth API
+  version: 1.0.0
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Auth user
+      parameters:
+      - description: user credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UserHandlerInputDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+      tags:
+      - login
+  /users:
+    delete:
+      consumes:
+      - '*/*'
+      description: Delete user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - users
+    get:
+      consumes:
+      - '*/*'
+      description: Find user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecase.FindUserUseCaseOutputDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UserHandlerInputDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user
+      parameters:
+      - description: user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UserHandlerInputDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UserHandlerMessageDTO'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
